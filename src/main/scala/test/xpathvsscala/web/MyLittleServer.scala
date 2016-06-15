@@ -9,7 +9,8 @@ import java.net.InetSocketAddress
   * @author Joacim Zschimmer
   */
 final class MyLittleServer(address: InetSocketAddress) extends AutoCloseable {
-  protected implicit lazy val actorSystem = ActorSystem("MyLittleServer")
+
+  private implicit lazy val actorSystem = ActorSystem("MyLittleServer")
   lazy val webServer = new WebServer(address, Routes.route)
 
   def start(): Unit = webServer

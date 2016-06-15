@@ -16,7 +16,7 @@ package object order {
   final case class Jobchain(path: JobChainPath, nodes: Vector[JobchainNode])
   final case class Folder(subfolders: Vector[Folder], jobchains: Vector[Jobchain])
 
-  object jsonFormats {
+  object JsonFormats {
     implicit val JobChainPathJsonFormat = jsonFormat1(JobChainPath.apply)
     implicit val OrderStateJsonFormat = jsonFormat1(OrderState.apply)
     implicit val OrderIdJsonFormat = jsonFormat1(OrderId.apply)

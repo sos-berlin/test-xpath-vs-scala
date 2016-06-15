@@ -1,4 +1,4 @@
-package test.xpathvsscala.data
+package test.xpathvsscala.testdata
 
 import com.sos.scheduler.engine.data.jobchain.JobChainPath
 import com.sos.scheduler.engine.data.order.{OrderId, OrderState}
@@ -22,6 +22,29 @@ object Data {
   val sub_c200_1 = Order(OrderId("1"), isSuspended = true)
 
   val sub_sub_d100_1 = Order(OrderId("1"), isSuspended = true, isSetBack = true)
+
+  val allOrders = List(
+    a100_1, a100_2, a100_3, a100_4,
+    a200_1, a200_2,
+    b100_1,
+    sub_c100_1,
+    sub_c200_1,
+    sub_sub_d100_1)
+
+  val suspendedOrders = List(
+    a100_2, a100_4,
+    a200_2,
+    sub_c200_1,
+    sub_sub_d100_1)
+
+  val setBackOrders = List(
+    a100_3, a100_4,
+    b100_1,
+    sub_sub_d100_1)
+
+  val bothSuspendedAndSetBackOrders = List(
+    a100_4,
+    sub_sub_d100_1)
 
   val rootFolder =
     Folder(

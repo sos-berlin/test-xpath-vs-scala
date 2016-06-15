@@ -5,12 +5,13 @@ import scala.collection.immutable
 /**
   * @author Joacim Zschimmer
   */
-object OrderSelector {
-  def find(folder: Folder)(query: Order ⇒ Boolean) =
+object Orders {
+
+  def selectOrders(folder: Folder) =
     for (subfolder ← flattenFolders(folder);
-        jobchain ← subfolder.jobchains;
+         jobchain ← subfolder.jobchains;
          node ← jobchain.nodes;
-         order ← node.orderQueue.orders if query(order))
+         order ← node.orderQueue.orders)
     yield order
 
   def flattenFolders(folder: Folder): immutable.Seq[Folder] =

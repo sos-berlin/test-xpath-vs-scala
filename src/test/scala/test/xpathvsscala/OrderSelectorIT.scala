@@ -1,12 +1,18 @@
 package test.xpathvsscala
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.sos.scheduler.engine.common.scalautil.Futures.implicits._
+import com.sos.scheduler.engine.common.time.ScalaTime._
+import com.sos.scheduler.engine.common.utils.FreeTcpPortFinder.findRandomFreeTcpPort
 import java.net.InetSocketAddress
 import org.scalatest.{BeforeAndAfterAll, FreeSpec}
+import spray.json.DefaultJsonProtocol._
 import test.xpathvsscala.client.WebClient
-import test.xpathvsscala.data.Data
-import test.xpathvsscala.data.Data._
-import test.xpathvsscala.order.Folder
-import test.xpathvsscala.order.OrderSelector._
+import test.xpathvsscala.order.JsonFormats._
+import test.xpathvsscala.order.Orders._
+import test.xpathvsscala.order.{Folder, Order}
+import test.xpathvsscala.testdata.Data
+import test.xpathvsscala.testdata.Data._
 import test.xpathvsscala.web.MyLittleServer
 
 /**
@@ -14,8 +20,9 @@ import test.xpathvsscala.web.MyLittleServer
   */
 final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
 
-  private lazy val server = new MyLittleServer(new InetSocketAddress("127.0.0.1", 7777))
-  private lazy val client = new WebClient("http://127.0.0.1:7777/api/allNestedFolders")
+  private val port = findRandomFreeTcpPort()
+  private lazy val server = new MyLittleServer(new InetSocketAddress("127.0.0.1", port))
+  private lazy val client = new WebClient
 
   override protected def beforeAll() = {
     server.start()
@@ -29,53 +36,64 @@ final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
     super.afterAll()
   }
 
-  for (i ← 1 to 10)
+  for (i ← 1 to 3)
     s"$i" - {
-      s"Data.rootFolder" - {
-        addTests(() ⇒ Data.rootFolder)
+      s"Data directly access" - {
+        addClientSideTests(() ⇒ Data.rootFolder)
       }
 
-      s"Via web service" - {
-        addTests(client.fetchRootFolder)
+      s"Data fetched web service" - {
+        addClientSideTests(() ⇒ client.get[Folder](s"http://127.0.0.1:$port/api/allNestedFolders") await 10.s)
+      }
+
+      "Data selected via web service" - {
+        addServerSideTests()
       }
     }
 
-  def addTests(fetchRootFolder: () => Folder) {
-    lazy val root = fetchRootFolder()
+  private def addClientSideTests(fetchRootFolder: () => Folder): Unit = {
+    lazy val allOrders = selectOrders(fetchRootFolder())
 
     "none" in {
-      assert(find(root) { _ ⇒ false } == Nil)
+      assert((allOrders filter { _ ⇒ false }) == Nil)
     }
 
     "all" in {
-      assert(find(root) { _ ⇒ true } == List(
-        a100_1, a100_2, a100_3, a100_4,
-        a200_1, a200_2,
-        b100_1,
-        sub_c100_1,
-        sub_c200_1,
-        sub_sub_d100_1))
+      assert((allOrders filter { _ ⇒ true }) == allOrders)
     }
 
     "suspended" in {
-      assert(find(root) { _.isSuspended } == List(
-        a100_2, a100_4,
-        a200_2,
-        sub_c200_1,
-        sub_sub_d100_1))
+      assert((allOrders filter { _.isSuspended }) == suspendedOrders)
     }
 
     "set back" in {
-      assert(find(root) { _.isSetBack } == List(
-        a100_3, a100_4,
-        b100_1,
-        sub_sub_d100_1))
+      assert((allOrders filter { _.isSetBack }) == setBackOrders)
     }
 
     "both suspended and set back" in {
-      assert(find(root) { o ⇒ o.isSuspended && o.isSetBack } == List(
-        a100_4,
-        sub_sub_d100_1))
+      assert((allOrders filter { o ⇒ o.isSuspended && o.isSetBack }) == bothSuspendedAndSetBackOrders)
+    }
+  }
+
+  private def addServerSideTests(): Unit = {
+    "all" in {
+      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders") await 10.s
+      assert(orders == allOrders)
+    }
+
+    "suspended" in {
+      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?suspended=true") await 10.s
+      assert(orders == suspendedOrders)
+    }
+
+    "set back" in {
+      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?setBack=true") await 10.s
+      assert(orders == setBackOrders)
+    }
+
+    "both suspended and set back" in {
+      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?suspended=true&setBack=true") await 10.s
+      assert(orders == bothSuspendedAndSetBackOrders)
     }
   }
 }
