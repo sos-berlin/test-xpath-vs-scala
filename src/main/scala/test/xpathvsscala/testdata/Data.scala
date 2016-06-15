@@ -46,6 +46,11 @@ object Data {
     a100_4,
     sub_sub_d100_1)
 
+  val suspendedButNotSetBackOrders = List(
+    a100_2,
+    a200_2,
+    sub_c200_1)
+
   val rootFolder =
     Folder(
       jobchains = Vector(

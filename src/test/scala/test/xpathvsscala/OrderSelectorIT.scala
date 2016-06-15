@@ -43,7 +43,8 @@ final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
       }
 
       s"Data fetched web service" - {
-        addClientSideTests(() ⇒ client.get[Folder](s"http://127.0.0.1:$port/api/allNestedFolders") await 10.s)
+        def fetchRootFolder() = client.get[Folder](s"http://127.0.0.1:$port/api/allNestedFolders") await 10.s
+        addClientSideTests(fetchRootFolder)
       }
 
       "Data selected via web service" - {
@@ -73,27 +74,33 @@ final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
     "both suspended and set back" in {
       assert((allOrders filter { o ⇒ o.isSuspended && o.isSetBack }) == bothSuspendedAndSetBackOrders)
     }
+
+    "suspended but not set back" in {
+      assert((allOrders filter { o ⇒ o.isSuspended && !o.isSetBack }) == suspendedButNotSetBackOrders)
+    }
   }
 
   private def addServerSideTests(): Unit = {
     "all" in {
-      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders") await 10.s
-      assert(orders == allOrders)
+      assert(fetchOrders("") == allOrders)
     }
 
     "suspended" in {
-      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?suspended=true") await 10.s
-      assert(orders == suspendedOrders)
+      assert(fetchOrders("suspended=true") == suspendedOrders)
     }
 
     "set back" in {
-      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?setBack=true") await 10.s
-      assert(orders == setBackOrders)
+      assert(fetchOrders("setBack=true") == setBackOrders)
     }
 
     "both suspended and set back" in {
-      val orders = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?suspended=true&setBack=true") await 10.s
-      assert(orders == bothSuspendedAndSetBackOrders)
+      assert(fetchOrders("suspended=true&setBack=true") == bothSuspendedAndSetBackOrders)
+    }
+
+    "suspended, but not set back" in {
+      assert(fetchOrders("suspended=true&setBack=false") == suspendedButNotSetBackOrders)
     }
   }
+
+  private def fetchOrders(query: String) = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?$query") await 10.s
 }
