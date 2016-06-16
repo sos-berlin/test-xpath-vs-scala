@@ -50,6 +50,10 @@ final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
       }
     }
 
+  "Java" in {
+    OrderSelectorITJava.testFilterSuspended(rootFolder)
+  }
+
   private def addClientSideTests(fetchRootFolder: () => Folder): Unit = {
     lazy val allOrders = selectOrders(fetchRootFolder())
 

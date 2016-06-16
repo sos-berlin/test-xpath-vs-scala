@@ -8,20 +8,20 @@ import test.xpathvsscala.order.Orders.{Folder, Jobchain, JobchainNode, Order, Or
   * @author Joacim Zschimmer
   */
 object Data {
-  val a100_1 = Order(OrderId("1"))
-  val a100_2 = Order(OrderId("1"), isSuspended = true)
-  val a100_3 = Order(OrderId("1"), isSetBack = true)
-  val a100_4 = Order(OrderId("1"), isSuspended = true, isSetBack = true)
+  val a100_1 = Order(OrderId("a100_1"))
+  val a100_2 = Order(OrderId("a100_2"), isSuspended = true)
+  val a100_3 = Order(OrderId("a100_3"), isSetBack = true)
+  val a100_4 = Order(OrderId("a100_4"), isSuspended = true, isSetBack = true)
 
-  val a200_1 = Order(OrderId("1"))
-  val a200_2 = Order(OrderId("1"), isSuspended = true)
+  val a200_1 = Order(OrderId("a200_1"))
+  val a200_2 = Order(OrderId("a200_2"), isSuspended = true)
 
-  val b100_1 = Order(OrderId("1"), isSetBack = true)
+  val b100_1 = Order(OrderId("b100_1"), isSetBack = true)
 
-  val sub_c100_1 = Order(OrderId("1"))
-  val sub_c200_1 = Order(OrderId("1"), isSuspended = true)
+  val sub_c100_1 = Order(OrderId("sub_c100_1"))
+  val sub_c200_1 = Order(OrderId("sub_c200_1"), isSuspended = true)
 
-  val sub_sub_d100_1 = Order(OrderId("1"), isSuspended = true, isSetBack = true)
+  val sub_sub_d100_1 = Order(OrderId("sub_sub_d100_1"), isSuspended = true, isSetBack = true)
 
   val allOrders = List(
     a100_1, a100_2, a100_3, a100_4,
@@ -36,6 +36,7 @@ object Data {
     a200_2,
     sub_c200_1,
     sub_sub_d100_1)
+  def suspendedOrdersArray = suspendedOrders.toArray
 
   val setBackOrders = List(
     a100_3, a100_4,
