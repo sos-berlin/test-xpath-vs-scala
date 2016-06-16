@@ -3,36 +3,34 @@ package test.xpathvsscala
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import com.sos.scheduler.engine.common.scalautil.Futures.implicits._
 import com.sos.scheduler.engine.common.time.ScalaTime._
-import com.sos.scheduler.engine.common.utils.FreeTcpPortFinder.findRandomFreeTcpPort
 import java.net.InetSocketAddress
 import org.scalatest.{BeforeAndAfterAll, FreeSpec}
 import spray.json.DefaultJsonProtocol._
-import test.xpathvsscala.client.WebClient
-import test.xpathvsscala.order.JsonFormats._
 import test.xpathvsscala.order.Orders._
-import test.xpathvsscala.order.{Folder, Order}
 import test.xpathvsscala.testdata.Data
 import test.xpathvsscala.testdata.Data._
-import test.xpathvsscala.web.MyLittleServer
+import test.xpathvsscala.web.WebServer
+import test.xpathvsscala.webclient.WebClient
 
 /**
   * @author Joacim Zschimmer
   */
 final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
 
-  private val port = findRandomFreeTcpPort()
-  private lazy val server = new MyLittleServer(new InetSocketAddress("127.0.0.1", port))
-  private lazy val client = new WebClient
+  private lazy val webServer = new WebServer(new InetSocketAddress("127.0.0.1", 0))
+  private lazy val port = webServer.port
+  private lazy val webClient = new WebClient
 
   override protected def beforeAll() = {
-    server.start()
-    client
+    webServer
+    info(s"$webServer started")
+    webClient
     super.beforeAll()
   }
 
   override protected def afterAll() = {
-    client.close()
-    server.close()
+    webClient.close()
+    webServer.close()
     super.afterAll()
   }
 
@@ -43,7 +41,7 @@ final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
       }
 
       s"Data fetched web service" - {
-        def fetchRootFolder() = client.get[Folder](s"http://127.0.0.1:$port/api/allNestedFolders") await 10.s
+        def fetchRootFolder() = webClient.get[Folder](s"http://127.0.0.1:$port/api/allNestedFolders") await 10.s
         addClientSideTests(fetchRootFolder)
       }
 
@@ -102,5 +100,5 @@ final class OrderSelectorIT extends FreeSpec with BeforeAndAfterAll {
     }
   }
 
-  private def fetchOrders(query: String) = client.get[List[Order]](s"http://127.0.0.1:$port/api/orders?$query") await 10.s
+  private def fetchOrders(query: String) = webClient.get[List[Order]](s"http://127.0.0.1:$port/api/orders?$query") await 10.s
 }

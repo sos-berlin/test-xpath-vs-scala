@@ -2,7 +2,7 @@ package test.xpathvsscala.testdata
 
 import com.sos.scheduler.engine.data.jobchain.JobChainPath
 import com.sos.scheduler.engine.data.order.{OrderId, OrderState}
-import test.xpathvsscala.order.{Folder, Jobchain, JobchainNode, Order, OrderQueue}
+import test.xpathvsscala.order.Orders.{Folder, Jobchain, JobchainNode, Order, OrderQueue}
 
 /**
   * @author Joacim Zschimmer
